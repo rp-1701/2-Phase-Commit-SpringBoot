@@ -1,6 +1,12 @@
 # Two-Phase Commit Implementation - Zomato 10-min Delivery
 
-This project demonstrates a simplified implementation of the Two-Phase Commit protocol using a Zomato 10-minute delivery scenario.
+This project demonstrates a simplified implementation of the Two-Phase Commit protocol using a Zomato 10-minute delivery scenario, along with proper concurrency handling using both optimistic and pessimistic locking.
+
+## Problem Statement
+Implement a 10-minute delivery system that ensures:
+1. Item availability in nearby store
+2. Delivery agent availability
+3. Atomic transaction across both resources
 
 ## System Components
 
@@ -8,11 +14,13 @@ This project demonstrates a simplified implementation of the Two-Phase Commit pr
 - Handles incoming order requests
 - Coordinates with Item and Delivery services
 - Manages the two-phase commit protocol
+- Provides simplified response to end users
 
 ### 2. Item Service (Participant 1)
 - Manages item inventory
 - Checks item availability in nearby stores
 - Reserves items during the commit phase
+- Handles concurrent access using both optimistic and pessimistic locking
 
 ### 3. Delivery Service (Participant 2)
 - Manages delivery agents
@@ -36,15 +44,59 @@ This project demonstrates a simplified implementation of the Two-Phase Commit pr
   - Coordinator sends ROLLBACK
   - Resources are released
 
-## Project Structure
+## API Endpoints
+
+### Order Service
 ```
-├── Order-Service/     # Coordinator Service
-├── Item-Service/      # Participant 1
-└── Delivery-Service/  # Participant 2
+POST /api/orders
+- Creates new order
+- Coordinates 2PC
+- Returns simplified success/failure response
 ```
 
-## Technologies Used
-- Spring Boot
-- Spring Data JPA
-- RESTful APIs
-- H2 Database (for simplicity) 
+### Item Service
+```
+POST /api/items/prepare
+- Checks and reserves item
+- Uses pessimistic locking
+
+POST /api/items/commit
+- Confirms item reservation
+
+POST /api/items/rollback
+- Releases item reservation
+```
+
+### Delivery Service
+```
+POST /api/delivery/prepare
+- Checks and reserves delivery agent
+- Uses pessimistic locking
+
+POST /api/delivery/commit
+- Confirms agent assignment
+
+POST /api/delivery/rollback
+- Releases agent reservation
+```
+
+## Running the Project
+
+### Prerequisites
+- Java 17
+- Spring Boot 3.x
+- H2 Database (for simplicity)
+
+### Setup
+1. Clone the repository
+2. Run each service:
+```bash
+# Start Order Service (port 8080)
+./mvnw spring-boot:run -pl Order-Service
+
+# Start Item Service (port 8081)
+./mvnw spring-boot:run -pl Item-Service
+
+# Start Delivery Service (port 8082)
+./mvnw spring-boot:run -pl Delivery-Service
+```
