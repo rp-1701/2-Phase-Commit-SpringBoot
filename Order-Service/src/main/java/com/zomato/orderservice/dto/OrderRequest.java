@@ -6,4 +6,5 @@ import lombok.Data;
 public class OrderRequest {
     private Long customerId;
     private Long itemId;
+    private String deliveryLocation;
 } 
