@@ -2,6 +2,8 @@
 
 This project demonstrates a simplified implementation of the Two-Phase Commit protocol using a Zomato 10-minute delivery scenario, along with proper concurrency handling using both optimistic and pessimistic locking.
 
+For detailed technical learnings and implementation insights, check out our [LEARNINGS.md](LEARNINGS.md) document.
+
 ## Problem Statement
 Implement a 10-minute delivery system that ensures:
 1. Item availability in nearby store
