@@ -1,9 +1,0 @@
-package com.zomato.deliveryservice.dto;
-
-import lombok.Data;
-
-@Data
-public class DeliveryRequest {
-    private Long orderId;
-    private String deliveryLocation;
-} 
