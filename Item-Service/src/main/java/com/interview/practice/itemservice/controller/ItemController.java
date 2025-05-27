@@ -1,7 +1,7 @@
 package com.interview.practice.itemservice.controller;
 
-import com.interview.practice.itemservice.dto.OrderRequest;
-import com.interview.practice.itemservice.dto.ParticipantResponse;
+import com.interview.practice.itemservice.dto.ItemServiceRequest;
+import com.interview.practice.itemservice.dto.ParticipantServiceResponse;
 import com.interview.practice.itemservice.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,26 +14,26 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping("/prepare")
-    public ResponseEntity<ParticipantResponse> prepare(@RequestBody OrderRequest request) {
+    public ResponseEntity<ParticipantServiceResponse> prepare(@RequestBody ItemServiceRequest request) {
         boolean prepared = itemService.prepare(request.getOrderId(), request.getItemId());
         
         if (prepared) {
-            return ResponseEntity.ok(ParticipantResponse.ready());
+            return ResponseEntity.ok(ParticipantServiceResponse.ready());
         } else {
             return ResponseEntity.ok(
-                ParticipantResponse.abort("Item not available or cannot be reserved")
+                ParticipantServiceResponse.abort("Item not available or cannot be reserved")
             );
         }
     }
 
     @PostMapping("/commit")
-    public ResponseEntity<Void> commit(@RequestBody OrderRequest request) {
+    public ResponseEntity<Void> commit(@RequestBody ItemServiceRequest request) {
         itemService.commit(request.getOrderId());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/rollback")
-    public ResponseEntity<Void> rollback(@RequestBody OrderRequest request) {
+    public ResponseEntity<Void> rollback(@RequestBody ItemServiceRequest request) {
         itemService.rollback(request.getOrderId());
         return ResponseEntity.ok().build();
     }

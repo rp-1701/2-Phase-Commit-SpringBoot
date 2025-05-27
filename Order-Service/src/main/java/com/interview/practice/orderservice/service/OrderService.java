@@ -2,7 +2,9 @@ package com.interview.practice.orderservice.service;
 
 import com.interview.practice.orderservice.dto.OrderRequest;
 import com.interview.practice.orderservice.dto.OrderResponse;
-import com.interview.practice.orderservice.dto.ParticipantResponse;
+import com.interview.practice.orderservice.dto.DeliveryServiceRequest;
+import com.interview.practice.orderservice.dto.ItemServiceRequest;
+import com.interview.practice.orderservice.dto.ParticipantServiceResponse;
 import com.interview.practice.orderservice.model.Order;
 import com.interview.practice.orderservice.model.OrderStatus;
 import com.interview.practice.orderservice.repository.OrderRepository;
@@ -25,6 +27,7 @@ public class OrderService {
             Order order = new Order();
             order.setCustomerId(request.getCustomerId());
             order.setItemId(request.getItemId());
+            order.setDeliveryLocation(request.getDeliveryLocation());
             order = orderRepository.save(order);
 
             // Start 2PC
@@ -51,16 +54,18 @@ public class OrderService {
 
         try {
             // Ask participants to prepare
-            ParticipantResponse itemResponse = restTemplate.postForObject(
-                ITEM_SERVICE_URL + "/prepare",
-                order,
-                ParticipantResponse.class
+            ItemServiceRequest itemRequest = ItemServiceRequest.fromOrder(order);
+            ParticipantServiceResponse itemResponse = restTemplate.postForObject(
+                ITEM_SERVICE_URL + "/api/items/prepare",
+                itemRequest,
+                ParticipantServiceResponse.class
             );
 
-            ParticipantResponse deliveryResponse = restTemplate.postForObject(
-                DELIVERY_SERVICE_URL + "/prepare",
-                order,
-                ParticipantResponse.class
+            DeliveryServiceRequest deliveryRequest = DeliveryServiceRequest.fromOrder(order);
+            ParticipantServiceResponse deliveryResponse = restTemplate.postForObject(
+                DELIVERY_SERVICE_URL + "/api/delivery/prepare",
+                deliveryRequest,
+                ParticipantServiceResponse.class
             );
 
             // If any participant is not ready, abort
@@ -84,15 +89,17 @@ public class OrderService {
 
     private boolean commit(Order order) {
         try {
+            ItemServiceRequest itemRequest = ItemServiceRequest.fromOrder(order);
             restTemplate.postForObject(
-                ITEM_SERVICE_URL + "/commit",
-                order,
+                ITEM_SERVICE_URL + "/api/items/commit",
+                itemRequest,
                 Void.class
             );
 
+            DeliveryServiceRequest deliveryRequest = DeliveryServiceRequest.fromOrder(order);
             restTemplate.postForObject(
-                DELIVERY_SERVICE_URL + "/commit",
-                order,
+                DELIVERY_SERVICE_URL + "/api/delivery/commit",
+                deliveryRequest,
                 Void.class
             );
 
@@ -105,15 +112,17 @@ public class OrderService {
 
     private void rollback(Order order) {
         try {
+            ItemServiceRequest itemRequest = ItemServiceRequest.fromOrder(order);
             restTemplate.postForObject(
-                ITEM_SERVICE_URL + "/rollback",
-                order,
+                ITEM_SERVICE_URL + "/api/items/rollback",
+                itemRequest,
                 Void.class
             );
 
+            DeliveryServiceRequest deliveryRequest = DeliveryServiceRequest.fromOrder(order);
             restTemplate.postForObject(
-                DELIVERY_SERVICE_URL + "/rollback",
-                order,
+                DELIVERY_SERVICE_URL + "/api/delivery/rollback",
+                deliveryRequest,
                 Void.class
             );
         } catch (Exception e) {

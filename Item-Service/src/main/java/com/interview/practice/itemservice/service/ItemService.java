@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ItemService {
     private final ItemRepository itemRepository;
     
-    // Track prepared transactions
+    // Track prepared transactions: orderId -> itemId
     private final Map<Long, Long> preparedOrders = new ConcurrentHashMap<>();
 
     @Transactional

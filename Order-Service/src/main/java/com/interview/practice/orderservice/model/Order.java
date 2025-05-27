@@ -10,10 +10,11 @@ import java.time.LocalDateTime;
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long orderId;
+    private Long id;
 
     private Long customerId;
     private Long itemId;
+    private String deliveryLocation;
     
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
