@@ -13,11 +13,18 @@ public class Item {
     
     private String name;
     private Long storeId;
-    private Integer quantityAvailable;
-    private Integer quantityReserved;
+    private Integer quantityAvailable = 0;
+    private Integer quantityReserved = 0;
     
     @Version
-    private Long version; // For optimistic locking
+    private Long version = 0L;  // Initialize version to 0
+
+    @PrePersist
+    protected void onCreate() {
+        if (version == null) {
+            version = 0L;
+        }
+    }
 
     public boolean canReserveOne() {
         return quantityAvailable > quantityReserved;

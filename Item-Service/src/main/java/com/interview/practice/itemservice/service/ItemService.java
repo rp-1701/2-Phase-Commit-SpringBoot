@@ -3,12 +3,14 @@ package com.interview.practice.itemservice.service;
 import com.interview.practice.itemservice.model.Item;
 import com.interview.practice.itemservice.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ItemService {
@@ -20,6 +22,7 @@ public class ItemService {
     @Transactional
     public boolean prepare(Long orderId, Long itemId) {
         try {
+            log.debug("Preparing item {} for order {}", itemId, orderId);
             Item item = itemRepository.findByItemId(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Item not found: " + itemId));
 
@@ -27,10 +30,13 @@ public class ItemService {
                 item.reserveOne();
                 itemRepository.save(item);
                 preparedOrders.put(orderId, itemId);
+                log.debug("Successfully prepared item {} for order {}", itemId, orderId);
                 return true;
             }
+            log.debug("Cannot reserve item {} for order {}", itemId, orderId);
             return false;
         } catch (Exception e) {
+            log.error("Error preparing item {} for order {}: {}", itemId, orderId, e.getMessage());
             return false;
         }
     }
@@ -39,27 +45,43 @@ public class ItemService {
     public void commit(Long orderId) {
         Long itemId = preparedOrders.remove(orderId);
         if (itemId == null) {
+            log.error("No prepared transaction found for order: {}", orderId);
             throw new IllegalStateException("No prepared transaction found for order: " + orderId);
         }
 
-        Item item = itemRepository.findByItemId(itemId)
-            .orElseThrow(() -> new IllegalArgumentException("Item not found: " + itemId));
+        try {
+            log.debug("Committing item {} for order {}", itemId, orderId);
+            Item item = itemRepository.findByItemId(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("Item not found: " + itemId));
 
-        item.commitReservation();
-        itemRepository.save(item);
+            item.commitReservation();
+            itemRepository.save(item);
+            log.debug("Successfully committed item {} for order {}", itemId, orderId);
+        } catch (Exception e) {
+            log.error("Error committing item {} for order {}: {}", itemId, orderId, e.getMessage());
+            throw e;
+        }
     }
 
     @Transactional
     public void rollback(Long orderId) {
         Long itemId = preparedOrders.remove(orderId);
         if (itemId == null) {
+            log.debug("Nothing to rollback for order: {}", orderId);
             return; // Nothing to rollback
         }
 
-        Item item = itemRepository.findByItemId(itemId)
-            .orElseThrow(() -> new IllegalArgumentException("Item not found: " + itemId));
+        try {
+            log.debug("Rolling back item {} for order {}", itemId, orderId);
+            Item item = itemRepository.findByItemId(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("Item not found: " + itemId));
 
-        item.releaseReservation();
-        itemRepository.save(item);
+            item.releaseReservation();
+            itemRepository.save(item);
+            log.debug("Successfully rolled back item {} for order {}", itemId, orderId);
+        } catch (Exception e) {
+            log.error("Error rolling back item {} for order {}: {}", itemId, orderId, e.getMessage());
+            throw e;
+        }
     }
 } 

@@ -17,5 +17,6 @@ public interface DeliveryAgentRepository extends JpaRepository<DeliveryAgent, Lo
     Optional<DeliveryAgent> findAvailableAgentInLocation(String location);
     
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT da FROM DeliveryAgent da WHERE da.reservedForOrderId = :orderId")
     Optional<DeliveryAgent> findByReservedForOrderId(Long orderId);
 } 
