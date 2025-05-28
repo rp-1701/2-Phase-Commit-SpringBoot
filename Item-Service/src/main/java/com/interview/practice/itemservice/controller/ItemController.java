@@ -43,7 +43,7 @@ public class ItemController {
     public ResponseEntity<Void> commit(@RequestBody ItemServiceRequest request) {
         try {
             log.info("Received commit request for orderId: {}", request.getOrderId());
-            itemService.commit(request.getOrderId());
+            itemService.commit(request.getOrderId(), request.getItemId());
             log.info("Successfully committed item for orderId: {}", request.getOrderId());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
@@ -56,7 +56,7 @@ public class ItemController {
     public ResponseEntity<Void> rollback(@RequestBody ItemServiceRequest request) {
         try {
             log.info("Received rollback request for orderId: {}", request.getOrderId());
-            itemService.rollback(request.getOrderId());
+            itemService.rollback(request.getOrderId(), request.getItemId());
             log.info("Successfully rolled back item for orderId: {}", request.getOrderId());
             return ResponseEntity.ok().build();
         } catch (Exception e) {

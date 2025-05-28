@@ -7,11 +7,7 @@ public class ParticipantServiceResponse {
     private boolean ready;
     private String message;
     private Long assignedAgentId;  // Additional field specific to delivery service
-    
-    public boolean isReady() {
-        return ready;
-    }
-    
+
     public static ParticipantServiceResponse ready(Long agentId) {
         ParticipantServiceResponse response = new ParticipantServiceResponse();
         response.setReady(true);

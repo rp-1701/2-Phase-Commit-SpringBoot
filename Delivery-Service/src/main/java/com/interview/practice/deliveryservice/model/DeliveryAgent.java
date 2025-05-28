@@ -7,31 +7,22 @@ import lombok.Data;
 @Table(name = "delivery_agents")
 @Data
 public class DeliveryAgent {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long agentId;
     
     private String name;
+
     private String currentLocation;
     
     @Enumerated(EnumType.STRING)
-    private AgentStatus status;
+    private AgentStatus status = AgentStatus.AVAILABLE;
     
     @Version
-    private Long version = 0L;  // Initialize version to 0
+    private Long version = 0L;
     
-    // Order ID for which agent is reserved (null if not reserved)
     private Long reservedForOrderId;
-
-    @PrePersist
-    protected void onCreate() {
-        if (version == null) {
-            version = 0L;
-        }
-        if (status == null) {
-            status = AgentStatus.AVAILABLE;
-        }
-    }
 
     public boolean isAvailable() {
         return status == AgentStatus.AVAILABLE && reservedForOrderId == null;

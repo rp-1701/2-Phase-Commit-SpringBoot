@@ -2,43 +2,30 @@ package com.interview.practice.itemservice.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Entity
 @Table(name = "items")
 @Data
 public class Item {
-    private static final Logger log = LoggerFactory.getLogger(Item.class);
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long itemId;
     
+    @Column(nullable = false)
     private String name;
+    
+    @Column(nullable = false)
     private Long storeId;
+    
+    @Column(nullable = false)
     private Integer quantityAvailable = 0;
+    
+    @Column(nullable = false)
     private Integer quantityReserved = 0;
     
     @Version
     @Column(nullable = false)
-    private Long version = 0L;  // Initialize version to 0
-
-    @PrePersist
-    protected void onCreate() {
-        if (version == null) {
-            version = 0L;
-            log.debug("PrePersist: Initialized version to 0");
-        }
-    }
-
-    @PostLoad
-    protected void onLoad() {
-        if (version == null) {
-            version = 0L;
-            log.debug("PostLoad: Had to initialize version to 0");
-        }
-    }
+    private Long version = 0L; // optimistic locking
 
     public boolean canReserveOne() {
         return quantityAvailable > quantityReserved && quantityAvailable > 0;

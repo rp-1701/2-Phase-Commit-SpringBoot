@@ -14,10 +14,10 @@ public class OrderResponse {
         return response;
     }
 
-    public static OrderResponse failure(String reason) {
+    public static OrderResponse failure() {
         OrderResponse response = new OrderResponse();
         response.setOrderPlaced(false);
-        response.setMessage("Sorry, we couldn't place your order. " + reason);
+        response.setMessage("Sorry, we couldn't place your order.");
         return response;
     }
 } 

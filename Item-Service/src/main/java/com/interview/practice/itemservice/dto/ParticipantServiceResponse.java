@@ -6,11 +6,7 @@ import lombok.Data;
 public class ParticipantServiceResponse {
     private boolean ready;
     private String message;
-    
-    public boolean isReady() {
-        return ready;
-    }
-    
+
     public static ParticipantServiceResponse ready() {
         ParticipantServiceResponse response = new ParticipantServiceResponse();
         response.setReady(true);

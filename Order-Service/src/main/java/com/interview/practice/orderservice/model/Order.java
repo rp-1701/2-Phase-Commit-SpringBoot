@@ -2,6 +2,8 @@ package com.interview.practice.orderservice.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
@@ -13,26 +15,17 @@ public class Order {
     private Long id;
 
     private Long customerId;
+
     private Long itemId;
+
     private String deliveryLocation;
     
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
     
+    @CreationTimestamp
     private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-        if (status == null) {
-            status = OrderStatus.INITIATED;
-        }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 } 
