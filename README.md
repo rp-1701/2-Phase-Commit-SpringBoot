@@ -1,104 +1,80 @@
-# Two-Phase Commit Implementation - Zomato 10-min Delivery
+# Two-Phase Commit Implementation
 
-This project demonstrates a simplified implementation of the Two-Phase Commit protocol using a Zomato 10-minute delivery scenario, along with proper concurrency handling using both optimistic and pessimistic locking.
+This project demonstrates a practical implementation of the Two-Phase Commit (2PC) protocol across multiple microservices for handling distributed transactions in a 10 min food delivery system.
 
-For detailed technical learnings and implementation insights, check out our [LEARNINGS.md](LEARNINGS.md) document.
+## 10-Minute Delivery Requirements
 
-## Problem Statement
-Implement a 10-minute delivery system that ensures:
-1. Item availability in nearby store
-2. Delivery agent availability
-3. Atomic transaction across both resources
+For a successful 10-minute delivery, the system must guarantee two critical conditions simultaneously:
+1. **Item Availability**: The ordered item must be available in a nearby store
+2. **Delivery Agent Assignment**: A delivery agent must be available and assigned to the order
 
-## System Components
+The Two-Phase Commit protocol ensures these conditions are met atomically:
+- Both resources (item and agent) must be successfully reserved
+- If either resource is unavailable, the entire order is rolled back
+- No partial allocations are allowed to prevent resource deadlocks
 
-### 1. Order Service (Coordinator)
-- Handles incoming order requests
-- Coordinates with Item and Delivery services
-- Manages the two-phase commit protocol
-- Provides simplified response to end users
+## Services Overview
 
-### 2. Item Service (Participant 1)
-- Manages item inventory
-- Checks item availability in nearby stores
-- Reserves items during the commit phase
-- Handles concurrent access using both optimistic and pessimistic locking
+1. **Order Service** (Port: 8080)
+   - Coordinates the 2PC process
+   - Handles order creation and management
+   - Communicates with Item and Delivery services
+   - Ensures atomic allocation of both item and delivery agent
 
-### 3. Delivery Service (Participant 2)
-- Manages delivery agents
-- Checks agent availability
-- Assigns agents to orders during commit phase
+2. **Item Service** (Port: 8081)
+   - Manages item inventory
+   - Handles item reservation and commitment
+   - Uses optimistic locking for concurrent access
+   - Ensures items are available in nearby stores
 
-## Two-Phase Commit Flow
+3. **Delivery Service** (Port: 8082)
+   - Manages delivery agent allocation
+   - Uses FOR UPDATE SKIP LOCKED for concurrent agent selection
+   - Handles agent reservation and commitment
+   - Assigns nearest available delivery agent
 
-### Phase 1 (Prepare)
-1. Order Service receives delivery request
-2. Coordinator asks Item Service to check item availability
-3. Coordinator asks Delivery Service to check agent availability
-4. Both services respond with READY or ABORT
+## Setup and Running
 
-### Phase 2 (Commit/Rollback)
-- If both services respond READY:
-  - Coordinator sends COMMIT
-  - Item is reserved
-  - Delivery agent is assigned
-- If any service responds ABORT:
-  - Coordinator sends ROLLBACK
-  - Resources are released
+1. Start each service in separate terminals:
+   ```bash
+   # Terminal 1 - Order Service
+   cd Order-Service
+   ./mvnw spring-boot:run
 
-## API Endpoints
+   # Terminal 2 - Item Service
+   cd Item-Service
+   ./mvnw spring-boot:run
 
-### Order Service
-```
-POST /api/orders
-- Creates new order
-- Coordinates 2PC
-- Returns simplified success/failure response
-```
+   # Terminal 3 - Delivery Service
+   cd Delivery-Service
+   ./mvnw spring-boot:run
+   ```
 
-### Item Service
-```
-POST /api/items/prepare
-- Checks and reserves item
-- Uses pessimistic locking
+2. The simulation will automatically run when you start the Order Service with the 'test' profile.
 
-POST /api/items/commit
-- Confirms item reservation
+## Testing Concurrent Orders
 
-POST /api/items/rollback
-- Releases item reservation
-```
+The system includes a simulation tool that tests concurrent order processing:
 
-### Delivery Service
-```
-POST /api/delivery/prepare
-- Checks and reserves delivery agent
-- Uses pessimistic locking
+- Simulates 15 concurrent orders
+- Tests resource allocation under high concurrency
+- Provides detailed logging of the 2PC process
+- Shows success/failure statistics
 
-POST /api/delivery/commit
-- Confirms agent assignment
+## Key Features
 
-POST /api/delivery/rollback
-- Releases agent reservation
-```
+- Distributed transaction management using 2PC
+- Concurrent resource allocation handling
+- Optimistic locking for inventory management
+- Skip-locked row selection for delivery agents
+- Comprehensive logging and monitoring
+- Automatic rollback on failures
+- Atomic allocation of items and delivery agents
+- Guaranteed resource availability before order confirmation
 
-## Running the Project
+## H2 Console Access
 
-### Prerequisites
-- Java 17
-- Spring Boot 3.x
-- H2 Database (for simplicity)
-
-### Setup
-1. Clone the repository
-2. Run each service:
-```bash
-# Start Order Service (port 8080)
-./mvnw spring-boot:run -pl Order-Service
-
-# Start Item Service (port 8081)
-./mvnw spring-boot:run -pl Item-Service
-
-# Start Delivery Service (port 8082)
-./mvnw spring-boot:run -pl Delivery-Service
-```
+Each service has its own H2 database console accessible at:
+- Order Service: http://localhost:8080/h2-console
+- Item Service: http://localhost:8081/h2-console
+- Delivery Service: http://localhost:8082/h2-console

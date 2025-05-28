@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class OrderSimulator {
 
     private static final String ORDER_SERVICE_URL = "http://localhost:8080/api/orders";
-    private static final int CONCURRENT_ORDERS = 10;
+    private static final int CONCURRENT_ORDERS = 15;
     private final RestTemplate restTemplate;
     private final AtomicInteger successCount = new AtomicInteger(0);
     private final AtomicInteger failureCount = new AtomicInteger(0);
