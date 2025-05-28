@@ -119,16 +119,3 @@ private Long version;
 4. Handle timeouts properly
 5. Consider retry strategies
 
-## Future Improvements
-1. Add timeout mechanisms
-2. Implement retry strategies
-3. Add monitoring and logging
-4. Consider distributed transaction patterns
-5. Implement recovery mechanisms
-
-## Testing Scenarios
-1. Concurrent order placement
-2. Resource contention
-3. Participant failures
-4. Network issues
-5. Timeout scenarios 
