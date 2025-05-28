@@ -12,9 +12,9 @@ import java.util.Optional;
 @Repository
 public interface DeliveryAgentRepository extends JpaRepository<DeliveryAgent, Long> {
     
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT da FROM DeliveryAgent da WHERE da.status = 'AVAILABLE' AND da.currentLocation = :location ORDER BY da.agentId ASC LIMIT 1")
-    Optional<DeliveryAgent> findAvailableAgentInLocation(String location);
+    @Query(value = "SELECT * FROM delivery_agents WHERE status = 'AVAILABLE' AND current_location = ?1 ORDER BY agent_id ASC LIMIT 1 FOR UPDATE SKIP LOCKED", 
+           nativeQuery = true)
+    Optional<DeliveryAgent> findFirstAvailableAgentInLocation(String location);
     
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT da FROM DeliveryAgent da WHERE da.reservedForOrderId = :orderId")

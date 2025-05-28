@@ -53,7 +53,7 @@ public class OrderService {
         orderRepository.save(order);
 
         try {
-            // Ask participants to prepare
+            // First, try to reserve the item
             ItemServiceRequest itemRequest = ItemServiceRequest.fromOrder(order);
             ParticipantServiceResponse itemResponse = restTemplate.postForObject(
                 ITEM_SERVICE_URL + "/api/items/prepare",
@@ -61,6 +61,14 @@ public class OrderService {
                 ParticipantServiceResponse.class
             );
 
+            // If item is not available, no need to check delivery
+            if (itemResponse == null || !itemResponse.isReady()) {
+                System.out.println("Item service not ready for order: " + order.getId() + 
+                    ". Response: " + (itemResponse != null ? itemResponse.getMessage() : "null"));
+                return false;
+            }
+
+            // Then, try to reserve a delivery agent
             DeliveryServiceRequest deliveryRequest = DeliveryServiceRequest.fromOrder(order);
             ParticipantServiceResponse deliveryResponse = restTemplate.postForObject(
                 DELIVERY_SERVICE_URL + "/api/delivery/prepare",
@@ -68,13 +76,9 @@ public class OrderService {
                 ParticipantServiceResponse.class
             );
 
-            // If any participant is not ready, abort
-            if (itemResponse == null || !itemResponse.isReady()) {
-                rollback(order);
-                return false;
-            }
-            
             if (deliveryResponse == null || !deliveryResponse.isReady()) {
+                System.out.println("Delivery service not ready for order: " + order.getId() + 
+                    ". Response: " + (deliveryResponse != null ? deliveryResponse.getMessage() : "null"));
                 rollback(order);
                 return false;
             }
@@ -82,6 +86,7 @@ public class OrderService {
             // Phase 2: Commit
             return commit(order);
         } catch (Exception e) {
+            System.out.println("Error in 2PC for order: " + order.getId() + ". Error: " + e.getMessage());
             rollback(order);
             return false;
         }
@@ -89,12 +94,15 @@ public class OrderService {
 
     private boolean commit(Order order) {
         try {
+            System.out.println("Starting commit phase for order: " + order.getId());
+            
             ItemServiceRequest itemRequest = ItemServiceRequest.fromOrder(order);
             restTemplate.postForObject(
                 ITEM_SERVICE_URL + "/api/items/commit",
                 itemRequest,
                 Void.class
             );
+            System.out.println("Item service committed for order: " + order.getId());
 
             DeliveryServiceRequest deliveryRequest = DeliveryServiceRequest.fromOrder(order);
             restTemplate.postForObject(
@@ -102,9 +110,11 @@ public class OrderService {
                 deliveryRequest,
                 Void.class
             );
+            System.out.println("Delivery service committed for order: " + order.getId());
 
             return true;
         } catch (Exception e) {
+            System.out.println("Error in commit phase for order: " + order.getId() + ". Error: " + e.getMessage());
             rollback(order);
             return false;
         }
@@ -112,12 +122,15 @@ public class OrderService {
 
     private void rollback(Order order) {
         try {
+            System.out.println("Starting rollback for order: " + order.getId());
+            
             ItemServiceRequest itemRequest = ItemServiceRequest.fromOrder(order);
             restTemplate.postForObject(
                 ITEM_SERVICE_URL + "/api/items/rollback",
                 itemRequest,
                 Void.class
             );
+            System.out.println("Item service rolled back for order: " + order.getId());
 
             DeliveryServiceRequest deliveryRequest = DeliveryServiceRequest.fromOrder(order);
             restTemplate.postForObject(
@@ -125,8 +138,9 @@ public class OrderService {
                 deliveryRequest,
                 Void.class
             );
+            System.out.println("Delivery service rolled back for order: " + order.getId());
         } catch (Exception e) {
-            // Log rollback failure
+            System.out.println("Error in rollback for order: " + order.getId() + ". Error: " + e.getMessage());
         }
     }
 } 

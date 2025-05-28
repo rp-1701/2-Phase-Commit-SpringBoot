@@ -26,18 +26,23 @@ public class ItemService {
             Item item = itemRepository.findByItemId(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Item not found: " + itemId));
             
-            log.debug("Found item with version: {}", item.getVersion());
+            log.debug("Found item with version: {}, available: {}, reserved: {}", 
+                     item.getVersion(), item.getQuantityAvailable(), item.getQuantityReserved());
 
             if (item.canReserveOne()) {
                 item.reserveOne();
-                log.debug("Before save - Item version: {}", item.getVersion());
+                log.debug("Before save - Item version: {}, available: {}, reserved: {}", 
+                         item.getVersion(), item.getQuantityAvailable(), item.getQuantityReserved());
                 item = itemRepository.save(item);
-                log.debug("After save - Item version: {}", item.getVersion());
+                log.debug("After save - Item version: {}, available: {}, reserved: {}", 
+                         item.getVersion(), item.getQuantityAvailable(), item.getQuantityReserved());
+            
                 preparedOrders.put(orderId, itemId);
                 log.debug("Successfully prepared item {} for order {}", itemId, orderId);
                 return true;
             }
-            log.debug("Cannot reserve item {} for order {}", itemId, orderId);
+            log.debug("Cannot reserve item {} for order {}. Available: {}, Reserved: {}", 
+                     itemId, orderId, item.getQuantityAvailable(), item.getQuantityReserved());
             return false;
         } catch (Exception e) {
             log.error("Error preparing item {} for order {}: {}", itemId, orderId, e.getMessage());

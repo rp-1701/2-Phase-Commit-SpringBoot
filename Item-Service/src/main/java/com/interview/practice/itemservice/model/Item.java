@@ -41,12 +41,12 @@ public class Item {
     }
 
     public boolean canReserveOne() {
-        return quantityAvailable > quantityReserved;
+        return quantityAvailable > quantityReserved && quantityAvailable > 0;
     }
 
     public void reserveOne() {
         if (!canReserveOne()) {
-            throw new IllegalStateException("Cannot reserve item: " + itemId);
+            throw new IllegalStateException("Cannot reserve item: " + itemId + ". Available: " + quantityAvailable + ", Reserved: " + quantityReserved);
         }
         quantityReserved++;
     }
@@ -54,6 +54,9 @@ public class Item {
     public void commitReservation() {
         if (quantityReserved <= 0) {
             throw new IllegalStateException("No reservation to commit for item: " + itemId);
+        }
+        if (quantityAvailable <= 0) {
+            throw new IllegalStateException("No items available to commit for item: " + itemId);
         }
         quantityAvailable--;
         quantityReserved--;

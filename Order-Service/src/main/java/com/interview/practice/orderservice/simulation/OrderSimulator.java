@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 public class OrderSimulator {
 
     private static final String ORDER_SERVICE_URL = "http://localhost:8080/api/orders";
-    private static final int CONCURRENT_ORDERS = 8;
+    private static final int CONCURRENT_ORDERS = 10;
     private final RestTemplate restTemplate;
 
     public OrderSimulator(RestTemplate restTemplate) {
@@ -28,8 +28,8 @@ public class OrderSimulator {
         ExecutorService executorService = Executors.newFixedThreadPool(CONCURRENT_ORDERS);
         List<CompletableFuture<OrderResponse>> futures = new ArrayList<>();
 
-        for (int i = 0; i < CONCURRENT_ORDERS; i++) {
-            final int orderId = i + 1;
+        for (int i = 1; i <= CONCURRENT_ORDERS; i++) {
+            final int orderId = i;
             CompletableFuture<OrderResponse> future = CompletableFuture.supplyAsync(() -> {
                 OrderRequest request = new OrderRequest();
                 request.setCustomerId((long) orderId);
@@ -46,12 +46,12 @@ public class OrderSimulator {
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                 .thenAccept(v -> {
                     System.out.println("\nAll orders completed. Results:");
-                    for (int i = 1; i <= futures.size(); i++) {
+                    for (int i = 0; i < futures.size(); i++) {
                         try {
                             OrderResponse response = futures.get(i).get();
-                            System.out.println("Order " + i + ": " + response.getMessage());
+                            System.out.println("Order " + (i + 1) + ": " + response.getMessage());
                         } catch (Exception e) {
-                            System.out.println("Order " + i + " failed: " + e.getMessage());
+                            System.out.println("Order " + (i + 1) + " failed: " + e.getMessage());
                         }
                     }
                 })
