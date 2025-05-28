@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 public class OrderSimulator {
 
     private static final String ORDER_SERVICE_URL = "http://localhost:8080/api/orders";
-    private static final int CONCURRENT_ORDERS = 1;
+    private static final int CONCURRENT_ORDERS = 8;
     private final RestTemplate restTemplate;
 
     public OrderSimulator(RestTemplate restTemplate) {
@@ -32,7 +32,7 @@ public class OrderSimulator {
             final int orderId = i + 1;
             CompletableFuture<OrderResponse> future = CompletableFuture.supplyAsync(() -> {
                 OrderRequest request = new OrderRequest();
-                request.setCustomerId(1L + orderId);
+                request.setCustomerId((long) orderId);
                 request.setItemId(1L);
                 request.setDeliveryLocation("Koramangala");
 
@@ -46,7 +46,7 @@ public class OrderSimulator {
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                 .thenAccept(v -> {
                     System.out.println("\nAll orders completed. Results:");
-                    for (int i = 0; i < futures.size(); i++) {
+                    for (int i = 1; i <= futures.size(); i++) {
                         try {
                             OrderResponse response = futures.get(i).get();
                             System.out.println("Order " + i + ": " + response.getMessage());

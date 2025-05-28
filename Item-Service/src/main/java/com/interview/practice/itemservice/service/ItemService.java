@@ -25,10 +25,14 @@ public class ItemService {
             log.debug("Preparing item {} for order {}", itemId, orderId);
             Item item = itemRepository.findByItemId(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Item not found: " + itemId));
+            
+            log.debug("Found item with version: {}", item.getVersion());
 
             if (item.canReserveOne()) {
                 item.reserveOne();
-                itemRepository.save(item);
+                log.debug("Before save - Item version: {}", item.getVersion());
+                item = itemRepository.save(item);
+                log.debug("After save - Item version: {}", item.getVersion());
                 preparedOrders.put(orderId, itemId);
                 log.debug("Successfully prepared item {} for order {}", itemId, orderId);
                 return true;
